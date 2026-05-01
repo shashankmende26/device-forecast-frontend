@@ -8,16 +8,35 @@
   font-size: 15px;
 }
 .inventory-summary-table th, .inventory-summary-table td {
-  padding: 10px 0px;
+  padding: 10px 10px;
   text-align: left;
+  background: transparent;
+  border: 1px solid rgb(225, 218, 218);
+  gap: 4px;
+  width: 300px;
+}
+.inventory-summary-table th.num, .inventory-summary-table td.num {
+  font-variant-numeric: tabular-nums;
+}
+.inventory-summary-table td.current-value {
+  color: #888;
+  font-weight: 400;
+  text-align: center;
 }
 .inventory-summary-table thead {
   background: #f5f5f5;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 .inventory-summary-table tr.bottleneck {
-  background: #ffe0e0;
+  border-left: 5px solid #d32f2f;
+  background: #fff6f6;
   font-weight: 600;
   color: #b71c1c;
+}
+.inventory-summary-table tr.zebra {
+  background: #f9f9f9;
 }
 .inventory-summary-table td.icon {
   font-size: 1.3rem;

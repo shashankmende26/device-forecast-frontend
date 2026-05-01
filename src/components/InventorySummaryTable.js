@@ -13,19 +13,19 @@ export default function InventorySummaryTable({ partStockSummary, bottleneckPart
       <table className="inventory-summary-table">
         <thead>
           <tr>
-            <th></th>
+            {/* <th></th> */}
             <th>Part Name</th>
             <th>Part ID</th>
-            <th>Current Stock</th>
-            <th>Used for Forecast</th>
-            <th>Remaining After Forecast</th>
-            <th>Current Value (INR)</th>
-            <th>Value Used (INR)</th>
-            <th>Remaining Value (INR)</th>
+            <th className="num">Current Stock</th>
+            <th className="num">Used for Forecast</th>
+            <th className="num">Remaining After Forecast</th>
+            <th className="num">Current Value</th>
+            <th className="num">Value Used</th>
+            <th className="num">Remaining Value</th>
           </tr>
         </thead>
         <tbody>
-          {paged.map((p) => {
+          {paged.map((p, idx) => {
             const isBottleneck = bottleneckPartIds.includes(p.partId);
             const before = typeof p.beforeStock === 'number' ? p.beforeStock : p.stockBefore;
             const after = typeof p.afterStock === 'number' ? p.afterStock : p.stockAfter;
@@ -33,17 +33,37 @@ export default function InventorySummaryTable({ partStockSummary, bottleneckPart
             const beforeVal = typeof p.beforeValue === 'number' ? p.beforeValue : undefined;
             const afterVal = typeof p.afterValue === 'number' ? p.afterValue : undefined;
             const usedVal = (typeof beforeVal === 'number' && typeof afterVal === 'number') ? beforeVal - afterVal : undefined;
+            // Progress bar for remaining value
+            const pct = (typeof afterVal === 'number' && typeof beforeVal === 'number' && beforeVal > 0)
+              ? Math.max(0, Math.min(100, (afterVal / beforeVal) * 100)) : 0;
             return (
-              <tr key={p.partId} className={isBottleneck ? "bottleneck" : ""}>
-                <td className="icon">{isBottleneck ? "🔴" : ""}</td>
+              <tr
+                key={p.partId}
+                className={
+                  (isBottleneck ? "bottleneck " : "") + (idx % 2 === 1 ? "zebra" : "")
+                }
+                style={isBottleneck ? { borderLeft: '5px solid #d32f2f', background: '#fff6f6' } : {}}
+              >
+                {/* <td className="icon">{isBottleneck ? "🔴" : ""}</td> */}
                 <td>{p.partName}</td>
                 <td>{p.partId}</td>
-                <td>{before?.toFixed(2) ?? '-'}</td>
-                <td>{used?.toFixed(2) ?? '-'}</td>
-                <td>{after?.toFixed(2) ?? '-'}</td>
-                <td>{typeof beforeVal === 'number' ? beforeVal.toFixed(2).toLocaleString(undefined, { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }) : '-'}</td>
-                <td>{typeof usedVal === 'number' ? usedVal.toFixed(2).toLocaleString(undefined, { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }) : '-'}</td>
-                <td>{typeof afterVal === 'number' ? afterVal.toFixed(2).toLocaleString(undefined, { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }) : '-'}</td>
+                <td className="num">{before?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '-'}</td>
+                <td className="num" style={{ color: used > 0 ? '#d32f2f' : '#888', fontWeight: 500 }}>
+                  {used > 0 ? `${used.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}
+                </td>
+                <td className="num">{after?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '-'}</td>
+                <td className="num current-value">{typeof beforeVal === 'number' ? `₹${beforeVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}</td>
+                <td className="num" style={{ color: usedVal > 0 ? '#d32f2f' : '#888', fontWeight: 600 }}>
+                  {usedVal > 0 ? `₹${usedVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}
+                </td>
+                <td className="num" style={{ position: 'relative' }}>
+                  {typeof afterVal === 'number' ? `₹${afterVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}
+                  {typeof afterVal === 'number' && typeof beforeVal === 'number' && beforeVal > 0 && (
+                    <div style={{ position: 'absolute', left: 0, bottom: 2, height: 3, width: '100%', background: '#e0f2f1', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: '#43a047', borderRadius: 2, opacity: 0.7 }}></div>
+                    </div>
+                  )}
+                </td>
               </tr>
             );
           })}
