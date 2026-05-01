@@ -1,19 +1,27 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import "./InventorySummaryTable.css";
 
 export default function InventorySummaryTable({ partStockSummary, bottleneckPartIds = [], page = 1, pageSize = 20, onPageChange }) {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  // Filter by part name or part ID
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 1000);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Filter by part name or part ID (debounced)
   const filtered = useMemo(() => {
     if (!partStockSummary) return [];
-    if (!search.trim()) return partStockSummary;
-    const s = search.trim().toLowerCase();
+    if (!debouncedSearch.trim()) return partStockSummary;
+    const s = debouncedSearch.trim().toLowerCase();
     return partStockSummary.filter(p =>
       (p.partName && p.partName.toLowerCase().includes(s)) ||
       (p.partId && p.partId.toLowerCase().includes(s))
     );
-  }, [partStockSummary, search]);
+  }, [partStockSummary, debouncedSearch]);
 
 
   // If no results, show a friendly message
