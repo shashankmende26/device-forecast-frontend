@@ -1,0 +1,43 @@
+.capacity-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 15px;
+}
+.capacity-table th, .capacity-table td {
+  padding: 10px 12px;
+  text-align: left;
+}
+.capacity-table thead {
+  background: #f5f5f5;
+}
+.capacity-table tr.bottleneck {
+  background: #ffeaea;
+  font-weight: 600;
+}
+.capacity-table tr.near {
+  background: #fff7e6;
+}
+.capacity-table tr.safe {
+  background: #eafaf1;
+}
+.capacity-table td.icon {
+  font-size: 1.3rem;
+  width: 32px;
+}
+.bar-bg {
+  background: #eee;
+  border-radius: 6px;
+  height: 12px;
+  width: 90px;
+  position: relative;
+}
+.bar-fill {
+  background: linear-gradient(90deg, #1976d2 60%, #90caf9 100%);
+  border-radius: 6px;
+  height: 100%;
+  transition: width 0.3s;
+}
