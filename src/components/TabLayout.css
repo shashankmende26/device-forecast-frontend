@@ -1,0 +1,29 @@
+.tab-layout {
+  margin-top: 24px;
+}
+.tab-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab-header button {
+  background: #f5f5f5;
+  border: none;
+  padding: 10px 22px;
+  font-size: 16px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  color: #1976d2;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.tab-header .tab-active {
+  background: #1976d2;
+  color: #fff;
+}
+.tab-content {
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 18px 12px 12px 12px;
+}

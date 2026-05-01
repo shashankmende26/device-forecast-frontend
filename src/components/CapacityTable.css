@@ -15,8 +15,9 @@
   background: #f5f5f5;
 }
 .capacity-table tr.bottleneck {
-  background: #ffeaea;
+  background: #ffe0e0;
   font-weight: 600;
+  color: #b71c1c;
 }
 .capacity-table tr.near {
   background: #fff7e6;

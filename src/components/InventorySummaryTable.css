@@ -1,0 +1,44 @@
+.inventory-summary-table-wrapper {
+  width: 100%;
+}
+.inventory-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 15px;
+}
+.inventory-summary-table th, .inventory-summary-table td {
+  padding: 10px 0px;
+  text-align: left;
+}
+.inventory-summary-table thead {
+  background: #f5f5f5;
+}
+.inventory-summary-table tr.bottleneck {
+  background: #ffe0e0;
+  font-weight: 600;
+  color: #b71c1c;
+}
+.inventory-summary-table td.icon {
+  font-size: 1.3rem;
+  width: 32px;
+}
+.table-pagination {
+  margin: 16px 0 0 0;
+  display: flex;
+  gap: 6px;
+}
+.table-pagination button {
+  background: #f5f5f5;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 15px;
+  cursor: pointer;
+  color: #1976d2;
+  font-weight: 500;
+}
+.table-pagination .active {
+  background: #1976d2;
+  color: #fff;
+}

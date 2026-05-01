@@ -5,6 +5,10 @@ import DeviceSelector from "./components/DeviceSelector";
 import KPITiles from "./components/KPITiles";
 import BottleneckExplanation from "./components/BottleneckExplanation";
 import CapacityTable from "./components/CapacityTable";
+import InventorySummaryTable from "./components/InventorySummaryTable";
+import StockHealthTable from "./components/StockHealthTable";
+import StockSummaryCards from "./components/StockSummaryCards";
+import TabLayout from "./components/TabLayout";
 import ControlBar from "./components/ControlBar";
 import ViewToggle from "./components/ViewToggle";
 import CapacityBarChart from "./components/CapacityBarChart";
@@ -48,8 +52,27 @@ export default function App() {
   // Dashboard layout
   const primaryBottleneck = forecast?.bottlenecks?.[0] || null;
   const bottleneckCount = forecast?.bottlenecks?.length || 0;
+  // Pagination state for inventory summary
+  const [invPage, setInvPage] = useState(1);
+  const pageSize = 20;
+
+  // Aggregation for inventory summary (INR only)
+  const agg = React.useMemo(() => {
+    if (!forecast?.partStockSummary) return null;
+    let valueBefore = 0, valueAfter = 0, valueUsed = 0;
+    forecast.partStockSummary.forEach(p => {
+      const beforeVal = typeof p.valueBefore === 'number' ? p.valueBefore : 0;
+      const afterVal = typeof p.valueAfter === 'number' ? p.valueAfter : 0;
+      const usedVal = beforeVal - afterVal;
+      valueBefore += beforeVal;
+      valueAfter += afterVal;
+      valueUsed += usedVal;
+    });
+    return { valueBefore, valueAfter, valueUsed };
+  }, [forecast]);
+
   return (
-    <div style={{ maxWidth: 1100, margin: "40px auto", padding: 32, fontFamily: "'Segoe UI', Arial, sans-serif", background: "#f4f6f8", borderRadius: 16, boxShadow: "0 2px 16px rgba(0,0,0,0.07)" }}>
+    <div style={{ padding: 10}}>
       {/* Header */}
       <div style={{ fontSize: 34, fontWeight: 700, marginBottom: 18, letterSpacing: -1, color: "#1976d2" }}>Device Forecast</div>
 
@@ -90,24 +113,46 @@ export default function App() {
         />
       )}
 
-      {/* View Toggle */}
+      {/* Tab-based layout for summary/health views */}
       {forecast && (
-        <ViewToggle view={view} setView={setView} />
-      )}
-
-      {/* Visual or Table View */}
-      {forecast && view === "visual" && (
         <>
-          <div style={{ fontSize: 20, fontWeight: 600, margin: "18px 0 8px 0", color: "#333" }}>Capacity by Part</div>
-          <CapacityBarChart parts={forecast.perPartCapacity} minCapacity={forecast.maxDeliverableQuantity} />
-          <CapacityHealthDonut parts={forecast.perPartCapacity} minCapacity={forecast.maxDeliverableQuantity} />
+          {/* Stock summary cards (INR only) */}
+          <StockSummaryCards
+            valueBefore={forecast.overallValueBefore}
+            valueUsed={forecast.overallValueBefore - forecast.overallValueAfter}
+            valueAfter={forecast.overallValueAfter}
+          />
+          <TabLayout
+            tabs={[
+              {
+                label: "Inventory Summary",
+                content: (
+                  <div>
+                    <InventorySummaryTable
+                      partStockSummary={forecast.partStockSummary}
+                      bottleneckPartIds={forecast.bottlenecks?.map(b => b.partId) || []}
+                      page={invPage}
+                      pageSize={pageSize}
+                      onPageChange={setInvPage}
+                    />
+                  </div>
+                )
+              },
+              {
+                label: "Stock Health",
+                content: (
+                  <div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "#1976d2", marginBottom: 18 }}>Stock Health</div>
+                    <StockHealthTable
+                      parts={forecast.perPartCapacity}
+                      minCapacity={forecast.maxDeliverableQuantity}
+                    />
+                  </div>
+                )
+              }
+            ]}
+          />
         </>
-      )}
-      {forecast && view === "table" && (
-        <div style={{ marginTop: 18 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, color: "#333" }}>Per-Part Capacity Breakdown</div>
-          <CapacityTable parts={forecast.perPartCapacity} minCapacity={forecast.maxDeliverableQuantity} />
-        </div>
       )}
     </div>
   );
