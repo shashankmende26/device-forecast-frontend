@@ -11,20 +11,31 @@ import React, { useState, useMemo } from "react";
  *   (should call backend with simulated inventory, but not mutate original)
  */
 export default function SimulationPanel({ forecast, deviceCode, onSimulate }) {
-  const primaryBottleneck = forecast?.bottlenecks?.[0];
+  const bottlenecks = forecast?.bottlenecks || [];
+  const [selectedBottleneckId, setSelectedBottleneckId] = useState(bottlenecks[0]?.partId || "");
   const [simStock, setSimStock] = useState(null);
   const [simResult, setSimResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Find bottleneck part in inventory
-  const bottleneckPart = useMemo(() => {
-    if (!primaryBottleneck || !forecast?.partStockSummary) return null;
-    return forecast.partStockSummary.find(p => p.partId === primaryBottleneck.partId);
-  }, [primaryBottleneck, forecast]);
+  // Reset simulator when device or forecast changes
+  React.useEffect(() => {
+    setSelectedBottleneckId(bottlenecks[0]?.partId || "");
+    setSimStock(null);
+    setSimResult(null);
+  }, [deviceCode, forecast]);
 
-  // Slider bounds
-  // Slider limits: minimum is current available stock, maximum is double the original stock or +100, whichever is higher
-  const minStock = bottleneckPart?.afterStock ?? bottleneckPart?.stockAfter ?? 0;
+  // Find selected bottleneck and part
+  const selectedBottleneck = bottlenecks.find(b => b.partId === selectedBottleneckId) || bottlenecks[0];
+  const bottleneckPart = useMemo(() => {
+    if (!selectedBottleneck || !forecast?.partStockSummary) return null;
+    return forecast.partStockSummary.find(p => p.partId === selectedBottleneck.partId);
+  }, [selectedBottleneck, forecast]);
+
+  // Used for forecast: beforeStock - afterStock
+  const bottleNeckStockUsedForForecast = forecast?.partStockSummary?.find(p => p.partId === selectedBottleneck?.partId);
+  const usedForForecast = bottleNeckStockUsedForForecast ? (bottleNeckStockUsedForForecast.beforeStock - bottleNeckStockUsedForForecast.afterStock) : 0;
+  const minStock = usedForForecast;
+  // Maximum is double the before stock or +100, whichever is higher
   const maxStock = Math.max(
     minStock,
     (bottleneckPart?.beforeStock ?? bottleneckPart?.stockBefore ?? minStock) * 2,
@@ -50,27 +61,46 @@ export default function SimulationPanel({ forecast, deviceCode, onSimulate }) {
     }
   }
 
-  // Initial value
+  // Handle bottleneck selection
+  function handleBottleneckSelect(e) {
+    setSelectedBottleneckId(e.target.value);
+    setSimStock(null);
+    setSimResult(null);
+  }
+
+  // Initial value for simStock
   React.useEffect(() => {
     if (minStock && simStock === null) setSimStock(minStock);
-  }, [minStock, simStock]);
+  }, [minStock, simStock, selectedBottleneckId]);
 
-  if (!primaryBottleneck || !bottleneckPart) return null;
+  if (!selectedBottleneck || !bottleneckPart) return null;
 
   const currentProduction = forecast.maxDeliverableQuantity;
   const simulatedProduction = simResult?.maxDeliverableQuantity ?? currentProduction;
   const delta = simulatedProduction - currentProduction;
 
   // Estimated cost calculation
-  const originalStock = bottleneckPart?.afterStock ?? bottleneckPart?.stockAfter ?? 0;
+  // Only for the difference between simulated and stock used for forecast
   const unitPrice = bottleneckPart?.unitPrice ?? 0;
-  const additionalStock = (simStock ?? originalStock) - originalStock;
+  const additionalStock = (simStock ?? minStock) - minStock;
   const estimatedCost = additionalStock > 0 ? additionalStock * unitPrice : 0;
 
   return (
     <div style={{ background: '#f3e5f5', border: '1.5px solid #ce93d8', borderRadius: 10, padding: '22px 32px', margin: '0 0 18px 0', fontSize: 18, fontWeight: 500, color: '#6a1b9a', boxShadow: '0 2px 12px rgba(186, 104, 200, 0.07)' }}>
       <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>🎛️ SIMULATION (What-if Analysis)</div>
-      <div style={{ marginBottom: 10 }}>Adjust <b>{primaryBottleneck.partName}</b> availability</div>
+      {bottlenecks.length > 1 && (
+        <div style={{ marginBottom: 12 }}>
+          <label htmlFor="bottleneck-select" style={{ fontSize: 16, color: '#333', marginRight: 8 }}>Select Bottleneck:</label>
+          <select id="bottleneck-select" value={selectedBottleneckId} onChange={handleBottleneckSelect} style={{ fontSize: 16, padding: '2px 8px', borderRadius: 6, border: '1.5px solid #bdbdbd' }}>
+            {bottlenecks.map(b => (
+              <option key={b.partId} value={b.partId}>{b.partName}</option>
+            ))}
+          </select>
+        </div>
+      )}
+      <div style={{ marginBottom: 10 }}>
+        Adjust <b>{selectedBottleneck.partName}</b> availability (Stock Used <b>{minStock}</b> units)
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
         <span>{minStock}</span>
         <input
@@ -94,6 +124,7 @@ export default function SimulationPanel({ forecast, deviceCode, onSimulate }) {
         />
         <span style={{ fontSize: 16, color: '#333' }}>Simulated Stock</span>
       </div>
+      <div>New Stock: <b>{additionalStock > 0 ? additionalStock : 0}</b> (to procure for gain)</div>
       <div>New Production: <b>{simulatedProduction}</b> units</div>
       <div>Production Gain: <b>{delta >= 0 ? "+" : ""}{delta}</b> units</div>
       {estimatedCost > 0 && delta > 0 && (
@@ -131,7 +162,7 @@ export default function SimulationPanel({ forecast, deviceCode, onSimulate }) {
         }
       `}</style>
       <div style={{ fontSize: 14, color: '#888', marginTop: 8 }}>
-        Slider limits: {minStock} (current available) to {maxStock} (max simulation)
+        Slider limits: {minStock} (stock used for forecast) to {maxStock} (max simulation)
       </div>
     </div>
   );

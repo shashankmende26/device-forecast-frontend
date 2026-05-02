@@ -82,6 +82,7 @@ export default function InventorySummaryTable({ partStockSummary, bottleneckPart
                 {/* <th></th> */}
                 <th>Part Name</th>
                 <th>Part ID</th>
+                <th>Unit Price</th>
                 <th className="num">Current Stock</th>
                 <th className="num">Used for Forecast</th>
                 <th className="num">Remaining After Forecast</th>
@@ -113,6 +114,7 @@ export default function InventorySummaryTable({ partStockSummary, bottleneckPart
                     {/* <td className="icon">{isBottleneck ? "🔴" : ""}</td> */}
                     <td>{p.partName}</td>
                     <td>{p.partId}</td>
+                    <td className="num">{typeof p.unitPrice === 'number' ? `₹${p.unitPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}</td>
                     <td className="num">{before?.toLocaleString(undefined, { maximumFractionDigits: 2 }) ?? '-'}</td>
                     <td className="num" style={{ color: used > 0 ? '#d32f2f' : '#888', fontWeight: 500 }}>
                       {used > 0 ? `${used.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '-'}
